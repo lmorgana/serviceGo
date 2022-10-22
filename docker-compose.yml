@@ -1,0 +1,31 @@
+version: '3.1'
+
+services:
+  postgres:
+    image: postgres:13.3
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_LOGIN}"
+      POSTGRES_PASSWORD: "${DB_PSWD}"
+    build:
+      context: ./requirements/postgreSql
+      dockerfile: Dockerfile
+    ports:
+      - "5432:5432"
+    networks:
+      - net
+  go:
+    container_name: go
+    restart: always
+    build:
+      context: ./requirements/go
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - net
+networks:
+  net:
+    driver: bridge
