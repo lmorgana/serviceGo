@@ -14,13 +14,6 @@ type idBalance struct {
 
 var db *sql.DB
 
-//func write(w http.ResponseWriter, r *http.Request) {
-//	var data topUpStruct
-//	w.Header().Set("Content-Type", "application/json")
-//	w.WriteHeader(http.StatusCreated)
-//	json.NewEncoder(w).Encode(data)
-//}
-
 func main() {
 	connStr := "user=postgres password=postgres host=host.docker.internal port=5432 dbname=dbname sslmode=disable"
 	var err error
@@ -38,6 +31,7 @@ func main() {
 	fmt.Println("All good database works")
 
 	http.HandleFunc("/topup", topUp)
+	http.HandleFunc("/getBalance", getBalance)
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Println(err)

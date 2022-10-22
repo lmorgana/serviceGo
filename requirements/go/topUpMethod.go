@@ -87,5 +87,4 @@ func topUp(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	fmt.Println("result is", inData)
 }

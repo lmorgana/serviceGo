@@ -9,4 +9,4 @@ COPY ./go.mod ./
 
 RUN go mod tidy
 
-CMD go run main.go topUpMethod.go
+CMD go run *.go
