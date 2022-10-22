@@ -4,9 +4,9 @@ WORKDIR /app
 
 EXPOSE 8080
 
-COPY ./main.go .
+COPY ./*.go .
 COPY ./go.mod ./
 
 RUN go mod tidy
 
-CMD go run main.go
+CMD go run main.go topUpMethod.go
