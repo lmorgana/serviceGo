@@ -8,30 +8,33 @@ import (
 )
 
 type idBalance struct {
-	id      int
-	balance int
+	id          int
+	balance     int
+	res_balance int
 }
 
-var db *sql.DB
+var DB *sql.DB
 
 func main() {
 	connStr := "user=postgres password=postgres host=host.docker.internal port=5432 dbname=dbname sslmode=disable"
 	var err error
-	db, err = sql.Open("postgres", connStr)
+	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	defer db.Close()
-	err = db.Ping()
+	defer DB.Close()
+	err = DB.Ping()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("All good database works")
+	fmt.Println("All good")
 
-	http.HandleFunc("/topup", topUp)
-	http.HandleFunc("/getBalance", getBalance)
+	http.HandleFunc("/topUp.json", topUp)
+	http.HandleFunc("/getBalance.json", getBalance)
+	http.HandleFunc("/reserving.json", reserving)
+	http.HandleFunc("/acceptFromReserve.json", acceptFromReserve)
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Println(err)

@@ -8,7 +8,6 @@ import (
 
 type getBalStruct struct {
 	Id_user int `json:"Id_user"`
-	sdf     int
 }
 
 type balance struct {
@@ -29,38 +28,24 @@ func decodeJSONBal(r *http.Request) (*getBalStruct, error) {
 func responseJSON(w http.ResponseWriter, value int) error {
 	data := balance{value}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(data)
 	return err
 }
 
 func getBalance(w http.ResponseWriter, r *http.Request) {
 	inData, err := decodeJSONBal(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println(err)
+	if err != nil || inData.Id_user < 0 {
+		sendErrorJSON(w, http.StatusBadRequest, "invalid_value",
+			"Client sent an unsupported value")
 		return
 	}
-	if inData.Id_user < 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	currUser, err := getUserById(db, inData.Id_user)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Println(err)
-		return
-	}
-	if currUser.id == -1 {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println(err)
+	currUser, err := getUserById(DB, inData.Id_user)
+	if err != nil || currUser.id == -1 {
+		sendErrorJSON(w, http.StatusNotFound, "invalid_id_user",
+			"Client provided an invalid User ID")
 		return
 	} else {
-		err = responseJSON(w, currUser.balance)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Println(err)
-			return
-		}
+		responseJSON(w, currUser.balance)
 	}
 }
