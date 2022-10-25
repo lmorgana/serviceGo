@@ -2,24 +2,20 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"net/http"
 )
 
 func changeOrderStat(inData *reservingStruct, currUser *idBalance) error {
-	if currUser.balance >= inData.Value {
-		newResBalance := currUser.res_balance - inData.Value
-		_, err := DB.Exec(`UPDATE Users SET res_balance = $1 WHERE id_user = $2`,
-			newResBalance, currUser.id)
-		if err != nil {
-			return err
-		}
-		_, err = DB.Exec(`UPDATE Orders SET status = $1 WHERE id_order = $2`,
-			1, inData.Id_order)
+	newResBalance := currUser.res_balance - inData.Value
+	_, err := DB.Exec(`UPDATE Users SET res_balance = $1 WHERE id_user = $2`,
+		newResBalance, currUser.id)
+	if err != nil {
 		return err
 	}
-	return errors.New("not enough money")
+	_, err = DB.Exec(`UPDATE Orders SET status = $1 WHERE id_order = $2`,
+		1, inData.Id_order)
+	return err
 }
 
 func getOrderById(db *sql.DB, id_order int) (*reservingStruct, error) {
@@ -38,7 +34,8 @@ func getOrderById(db *sql.DB, id_order int) (*reservingStruct, error) {
 
 func acceptFromReserve(w http.ResponseWriter, r *http.Request) {
 	inData, err := decodeJSONRes(r)
-	if err != nil || inData.Id_user < 0 || inData.Id_order < 0 || inData.Id_service < 0 || inData.Value < 0 {
+	if err != nil || !checkSliceForInterval(2147483648, 0,
+		inData.Id_user, inData.Id_order, inData.Id_service, inData.Value) {
 		sendErrorJSON(w, http.StatusBadRequest, "invalid_value",
 			"Client sent an unsupported value")
 		return
@@ -58,10 +55,15 @@ func acceptFromReserve(w http.ResponseWriter, r *http.Request) {
 		sendErrorJSON(w, http.StatusNotFound, "invalid_order_values",
 			"Client sent a wrong order values")
 		return
+	}
+	if currUser.res_balance < inData.Value {
+		sendErrorJSON(w, http.StatusPreconditionFailed, "balance_limit",
+			"Value exceed user balance limit")
+		return
 	} else {
 		err = changeOrderStat(inData, currUser)
 		if err != nil {
-			//sql error
+			sendErrorJSON(w, http.StatusInternalServerError, "", "")
 			return
 		}
 	}

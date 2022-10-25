@@ -17,3 +17,12 @@ func sendErrorJSON(w http.ResponseWriter, statusCode int, message string, descri
 	err := json.NewEncoder(w).Encode(data)
 	return err
 }
+
+func checkSliceForInterval(max, min int, arr ...int) bool {
+	for _, val := range arr {
+		if val >= max || val < min {
+			return false
+		}
+	}
+	return true
+}

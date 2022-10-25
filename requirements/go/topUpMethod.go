@@ -50,7 +50,7 @@ func updateBalance(currUser *idBalance) error {
 
 func topUp(w http.ResponseWriter, r *http.Request) {
 	inData, err := decodeJSON(r)
-	if err != nil || inData.Id_user < 0 || inData.Value < 0 {
+	if err != nil || !checkSliceForInterval(2147483648, 0, inData.Id_user, inData.Value) {
 		sendErrorJSON(w, http.StatusBadRequest, "invalid_value",
 			"Client sent an unsupported value")
 		return
@@ -69,9 +69,14 @@ func topUp(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if inData.Value != 0 {
 		currUser.balance += inData.Value
+		if !checkSliceForInterval(2147483648, 0, currUser.balance) {
+			sendErrorJSON(w, http.StatusPreconditionFailed, "balance_limit",
+				"Value exceed user balance limit")
+			return
+		}
 		err = updateBalance(currUser)
 		if err != nil {
-			//sql return some errors
+			sendErrorJSON(w, http.StatusInternalServerError, "", "")
 			return
 		}
 	}

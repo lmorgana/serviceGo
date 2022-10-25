@@ -35,7 +35,7 @@ func responseJSON(w http.ResponseWriter, value int) error {
 
 func getBalance(w http.ResponseWriter, r *http.Request) {
 	inData, err := decodeJSONBal(r)
-	if err != nil || inData.Id_user < 0 {
+	if err != nil || !checkSliceForInterval(2147483648, 0, inData.Id_user) {
 		sendErrorJSON(w, http.StatusBadRequest, "invalid_value",
 			"Client sent an unsupported value")
 		return

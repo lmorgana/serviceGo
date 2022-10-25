@@ -44,8 +44,8 @@ func addNewOrder(inData *reservingStruct, currUser *idBalance) error {
 
 func reserving(w http.ResponseWriter, r *http.Request) {
 	inData, err := decodeJSONRes(r)
-	if err != nil || inData.Id_user < 0 || inData.Id_order < 0 ||
-		inData.Id_service < 0 || inData.Value < 0 {
+	if err != nil || !checkSliceForInterval(2147483648, 0,
+		inData.Id_user, inData.Id_order, inData.Id_service, inData.Value) {
 		sendErrorJSON(w, http.StatusBadRequest, "invalid_value",
 			"Client sent an unsupported value")
 		return
@@ -55,10 +55,16 @@ func reserving(w http.ResponseWriter, r *http.Request) {
 		sendErrorJSON(w, http.StatusNotFound, "invalid_id_user",
 			"Client provided an invalid User ID")
 		return
+	}
+	order, err := getOrderById(DB, inData.Id_order)
+	if err != nil || order.Id_order >= 0 {
+		sendErrorJSON(w, http.StatusNotFound, "invalid_order_values",
+			"Client sent a wrong order values")
+		return
 	} else {
 		err = addNewOrder(inData, currUser)
 		if err != nil {
-			//sql error
+			sendErrorJSON(w, http.StatusInternalServerError, "", "")
 			return
 		}
 	}
