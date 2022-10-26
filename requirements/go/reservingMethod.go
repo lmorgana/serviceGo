@@ -24,13 +24,14 @@ func decodeJSONRes(r *http.Request) (*reservingStruct, error) {
 
 func addNewOrder(inData *reservingStruct, currUser *idBalance) error {
 	newBalance := currUser.balance - inData.Value
+	newResBalance := currUser.res_balance + inData.Value
 	_, err := DB.Exec(`INSERT INTO Orders VALUES ( $1, $2, $3, $4 )`,
 		currUser.id, inData.Id_service, inData.Id_order, inData.Value)
 	if err != nil {
 		return err
 	}
 	_, err = DB.Exec(`UPDATE Users SET balance = $1, res_balance = $2 WHERE id_user = $3`,
-		newBalance, inData.Value, currUser.id)
+		newBalance, newResBalance, currUser.id)
 	if err != nil {
 		_, err = DB.Exec(`DELETE FROM Users WHERE id_order = $1`,
 			inData.Id_order)
@@ -58,15 +59,15 @@ func reserving(w http.ResponseWriter, r *http.Request) {
 			"Client sent a wrong order values")
 		return
 	}
-	if currUser.balance < inData.Value {
+	if currUser.balance < inData.Value ||
+		currUser.res_balance+inData.Value > 2147483647 {
 		sendErrorJSON(w, http.StatusPreconditionFailed, "balance_limit",
 			"Value exceed user balance limit")
 		return
-	} else {
-		err = addNewOrder(inData, currUser)
-		if err != nil {
-			sendErrorJSON(w, http.StatusInternalServerError, "", "")
-			return
-		}
+	}
+	err = addNewOrder(inData, currUser)
+	if err != nil {
+		sendErrorJSON(w, http.StatusInternalServerError, "", "")
+		return
 	}
 }

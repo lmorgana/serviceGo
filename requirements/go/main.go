@@ -35,6 +35,7 @@ func main() {
 	http.HandleFunc("/getBalance.json", getBalance)
 	http.HandleFunc("/reserving.json", reserving)
 	http.HandleFunc("/acceptFromReserve.json", acceptFromReserve)
+	http.HandleFunc("/refuseFromReserve.json", refuseFromReserve)
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Println(err)
