@@ -31,7 +31,7 @@ func refuseFromReserve(w http.ResponseWriter, r *http.Request) {
 			"Client provided an invalid User ID")
 		return
 	}
-	order, err := getOrderById(DB, inData.Id_order)
+	order, err := getOrderById(DB, inData.Id_order, 0)
 	if err != nil ||
 		order.Id_order != inData.Id_order ||
 		order.Id_service != inData.Id_service ||

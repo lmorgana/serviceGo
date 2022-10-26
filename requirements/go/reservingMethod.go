@@ -53,7 +53,7 @@ func reserving(w http.ResponseWriter, r *http.Request) {
 			"Client provided an invalid User ID")
 		return
 	}
-	order, err := getOrderById(DB, inData.Id_order)
+	order, err := getOrderById(DB, inData.Id_order, 4)
 	if err != nil || order.Id_order >= 0 {
 		sendErrorJSON(w, http.StatusUnauthorized, "invalid_order_values",
 			"Client sent a wrong order values")

@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 )
 
@@ -18,11 +17,16 @@ func changeOrderStatAcc(inData *reservingStruct, currUser *idBalance) error {
 	return err
 }
 
-func getOrderById(db *sql.DB, id_order int) (*reservingStruct, error) {
+func getOrderById(db *sql.DB, id_order int, stat int) (*reservingStruct, error) {
+	var rows *sql.Rows
+	var err error
 	order := reservingStruct{-1, -1, -1, -1}
-	rows, err := db.Query(`SELECT * FROM Orders WHERE id_order = $1 AND status = 0`, id_order)
+	if stat == 4 {
+		rows, err = db.Query(`SELECT * FROM Orders WHERE id_order = $1`, id_order)
+	} else {
+		rows, err = db.Query(`SELECT * FROM Orders WHERE id_order = $1 AND status = $2`, id_order, stat)
+	}
 	if err != nil {
-		fmt.Println(err)
 		return &order, err
 	}
 	var i int
@@ -46,7 +50,7 @@ func acceptFromReserve(w http.ResponseWriter, r *http.Request) {
 			"Client provided an invalid User ID")
 		return
 	}
-	order, err := getOrderById(DB, inData.Id_order)
+	order, err := getOrderById(DB, inData.Id_order, 0)
 	if err != nil ||
 		order.Id_order != inData.Id_order ||
 		order.Id_service != inData.Id_service ||
