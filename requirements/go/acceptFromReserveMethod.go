@@ -42,7 +42,7 @@ func acceptFromReserve(w http.ResponseWriter, r *http.Request) {
 	}
 	currUser, err := getUserById(DB, inData.Id_user)
 	if err != nil || currUser.id == -1 {
-		sendErrorJSON(w, http.StatusNotFound, "invalid_id_user",
+		sendErrorJSON(w, http.StatusUnauthorized, "invalid_id_user",
 			"Client provided an invalid User ID")
 		return
 	}
@@ -52,7 +52,7 @@ func acceptFromReserve(w http.ResponseWriter, r *http.Request) {
 		order.Id_service != inData.Id_service ||
 		order.Id_user != inData.Id_user ||
 		order.Value != inData.Value {
-		sendErrorJSON(w, http.StatusNotFound, "invalid_order_values",
+		sendErrorJSON(w, http.StatusUnauthorized, "invalid_order_values",
 			"Client sent a wrong order values")
 		return
 	}

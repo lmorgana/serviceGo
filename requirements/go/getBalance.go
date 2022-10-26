@@ -42,7 +42,7 @@ func getBalance(w http.ResponseWriter, r *http.Request) {
 	}
 	currUser, err := getUserById(DB, inData.Id_user)
 	if err != nil || currUser.id == -1 {
-		sendErrorJSON(w, http.StatusNotFound, "invalid_id_user",
+		sendErrorJSON(w, http.StatusUnauthorized, "invalid_id_user",
 			"Client provided an invalid User ID")
 		return
 	} else {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 )
 
@@ -24,22 +23,19 @@ func decodeJSONRes(r *http.Request) (*reservingStruct, error) {
 }
 
 func addNewOrder(inData *reservingStruct, currUser *idBalance) error {
-	if currUser.balance >= inData.Value {
-		newBalance := currUser.balance - inData.Value
-		_, err := DB.Exec(`INSERT INTO Orders VALUES ( $1, $2, $3, $4 )`,
-			currUser.id, inData.Id_service, inData.Id_order, inData.Value)
-		if err != nil {
-			return err
-		}
-		_, err = DB.Exec(`UPDATE Users SET balance = $1, res_balance = $2 WHERE id_user = $3`,
-			newBalance, inData.Value, currUser.id)
-		if err != nil {
-			_, err = DB.Exec(`DELETE FROM Users WHERE id_order = $1`,
-				inData.Id_order)
-		}
+	newBalance := currUser.balance - inData.Value
+	_, err := DB.Exec(`INSERT INTO Orders VALUES ( $1, $2, $3, $4 )`,
+		currUser.id, inData.Id_service, inData.Id_order, inData.Value)
+	if err != nil {
 		return err
 	}
-	return errors.New("not enough money")
+	_, err = DB.Exec(`UPDATE Users SET balance = $1, res_balance = $2 WHERE id_user = $3`,
+		newBalance, inData.Value, currUser.id)
+	if err != nil {
+		_, err = DB.Exec(`DELETE FROM Users WHERE id_order = $1`,
+			inData.Id_order)
+	}
+	return err
 }
 
 func reserving(w http.ResponseWriter, r *http.Request) {
@@ -52,14 +48,19 @@ func reserving(w http.ResponseWriter, r *http.Request) {
 	}
 	currUser, err := getUserById(DB, inData.Id_user)
 	if err != nil || currUser.id == -1 {
-		sendErrorJSON(w, http.StatusNotFound, "invalid_id_user",
+		sendErrorJSON(w, http.StatusUnauthorized, "invalid_id_user",
 			"Client provided an invalid User ID")
 		return
 	}
 	order, err := getOrderById(DB, inData.Id_order)
 	if err != nil || order.Id_order >= 0 {
-		sendErrorJSON(w, http.StatusNotFound, "invalid_order_values",
+		sendErrorJSON(w, http.StatusUnauthorized, "invalid_order_values",
 			"Client sent a wrong order values")
+		return
+	}
+	if currUser.balance < inData.Value {
+		sendErrorJSON(w, http.StatusPreconditionFailed, "balance_limit",
+			"Value exceed user balance limit")
 		return
 	} else {
 		err = addNewOrder(inData, currUser)
