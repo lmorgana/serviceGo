@@ -1,8 +1,8 @@
 FROM golang:1.18-alpine AS build
 
 WORKDIR /src/
-COPY *.go /src/
-COPY ./go.mod ./
+COPY srcs/*.go .
+COPY srcs/go.mod .
 RUN go mod tidy
 RUN CGO_ENABLED=0 go build -o /bin/demo
 

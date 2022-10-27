@@ -1,9 +1,0 @@
-- name: topup
-  method: POST
-  path: getBalance.json
-  request: >
-    {
-      "Id_user": 1
-    }
-  response:
-    200: ''
